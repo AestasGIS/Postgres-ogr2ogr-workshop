@@ -50,12 +50,10 @@ at den bruger meget få ressourcer og kan arbejde på selv meget "små"  pc'er. 
  parametre ved at følge anvisningerne på følgende hjemmeside: https://pgtune.leopard.in.ua/
 
 
-    Opsætning af personlige adm. konti.
+1. Opsætning af personlige administrator konti: Log ind på database - system med postgres super-user og udfør følgende kommandoer:
 
-    CREATE USER <name> WITH PASSWORD <password>;
-    ALTER DATABASE <dbname> OWNER TO <name>;
-
-    Opsætning af personlige læse konti.
+`    CREATE USER *name* WITH PASSWORD *password*; -- *name* er nyt brugernavn, *password* er password;  `
+`    CREATE DATABASE dbname OWNER *name*;`
 
 Installation af PGAdmin på laptop
 
