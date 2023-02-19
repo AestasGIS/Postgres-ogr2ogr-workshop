@@ -54,9 +54,7 @@ at den bruger meget få ressourcer og kan arbejde på selv meget "små"  pc'er. 
  PostgreSQL paramatre, som bestemmer CPU og hukommelsesforbrug. Denne process kan være en kompleks og langvarig affære . Men man kan foretage en "Rough and ready" tuning af PostgreSQL
  parametre ved at følge anvisningerne på følgende hjemmeside: https://pgtune.leopard.in.ua/
 
-
  - Installation af PGAdmin på laptop: Genbrug installationsfilen fra EnterpriseDB, men fjern alle installationselementer udover PGAdmin
-
 
 ## ogr2ogr til konvertering af spatielle data mellem forskellige formater. 
 ogr2ogr er et kommandolinje program som er i stand til at både læse fra og skrive "simple features" (geodata med attributter) ud i dusinvis af forskellige formater, men i 
@@ -73,6 +71,18 @@ En anden metode er at downloade OsGeo4W installer fra QGIS.ORG's hjemmeside http
 Vælg "Express Install" og afkrydse "GDAL", når du skal vælge installationspakker.
 
 Hvis du har brug for de absolut nyeste og evt. beta udgaver af GDAL/OGR kan du benytte flg. hjemmeside: https://www.gisinternals.com/ og downloade herfra.
+
+Hvis du skal bruge ogr2ogr i et DOS script, kræver skal man have div. path environment variable på plads, før ogr2ogr kan fungere
+Eksempel på nødvendige kommandoer i en .cmd-fil, som skal udføre ogr2ogr
+```
+set OSGEO4W_ROOT=C:\nst_sporimport-master\gdal
+set path=%OSGEO4W_ROOT%\bin;%OSGEO4W_ROOT%\apps\proj-dev\bin;%OSGEO4W_ROOT%\apps\gdal-dev\bin;%WINDIR%\system32;%WINDIR%;%WINDIR%\system32\WBem
+SET PROJ_LIB=%OSGEO4W_ROOT%\share\proj
+REM Ecoding for datakilder, der skal indlæses i PostgreSQL VIGTIG, hvis du indlæsesr data i PostgreSQL !!!
+SET PGCLIENTENCODING=WIN-1252
+REM ogr2ogr...... kommandolinje for ogr2ogr
+```
+Efter udførelsen af disse kommandoer kan ogr fungere korrekt i et alm. DOS miljø
 
 ### ogr2ogr kommando grundlæggende parametre
 
@@ -116,22 +126,22 @@ ogr2ogr [--help-general] [-skipfailures] [-append | -upsert] [-update]
         [[-s_coord_epoch epoch] | [-t_coord_epoch epoch] | [-a_coord_epoch epoch]]
         [-nomd] [-mo "META-TAG=VALUE"]* [-noNativeData]
 ```
-Som det ses er der rig lejlighed til at tage fejl ! Og ovenstående inkluderer end ikke de mange forskellige -lco (layer creation options) og -dsco (data set creation oiptions) knyttet til de forskellige datakilder
+Som det ses er der rig lejlighed til at tage fejl ! Og ovenstående inkluderer end ikke de mange forskellige --config, -lco (layer creation options) og -dsco (data set creation oiptions) knyttet til de forskellige datakilder
 
-En minimum kommasndolinje med ogr2ogr har følgende udseende: 
+En minimum kommandolinje med ogr2ogr har følgende udseende: 
 ```
 og2ogr -f format_name dst_datasource_name src_datasource_name [-nln name] [layer [layer ...]]
 ```
 [...] betyder, at denne tekstdel i nogle tilfælde kan undværes.
 
-Vi vil bryde kommandolinjen op i en række deltekster
+Vi gennemgår kommadolinjen med en række eksempler, som løbende udvider bruger af ogr2ogr mange faciliteter.
 
 ### PostgreSQL som modtager (destination datasource)
 
 Et eksempel på den simpleste ogr2ogr kommando, som bruger PostgreSQL som data destination: 
 
 ```
-ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.shp -nln fot.bygninger
+ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tabshp -nln fot.bygninger
 ```
  1. Der bruges en shapefil: *bygninger.shp* som inddata (Shapefiler indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
  1. Data destination er en PostgreSQL database *-f "PostgreSQL"*
@@ -144,6 +154,16 @@ ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypass
  password er *mypassword* og slutteligt arbejder vi med database *geodata* på serveren
  1. tabelnavnet i databasen er *fot.bygninger*, dvs. tabelnavne kan inkludere et schemanavn  
 
+
+### Garanti for, at alle elementer er af samme type.
+
+Tab-filer (og andre datakilder) skelner ikke mellem simple og mulityper. PostgreSQL accepterer kun een bestemt type pr. tabel. Dette kan give problemer. 
+ogr2ogr kan løse dette problem ved at tilføje qualifier *-nlt PROMOTE_TO_MULTI* , som konverterer
+ alle ikke-multi elementer til de tilsvarende multi element typer
+
+```
+ogr2ogr -nlt PROMOTE_TO_MULTI -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.shp -nln fot.bygninger
+```
 
 
 
