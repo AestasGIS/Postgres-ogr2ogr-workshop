@@ -58,54 +58,97 @@ at den bruger meget få ressourcer og kan arbejde på selv meget "små"  pc'er. 
  - Installation af PGAdmin på laptop: Genbrug installationsfilen fra EnterpriseDB, men fjern alle installationselementer udover PGAdmin
 
 
-## Installation og opsætning af ogr2ogr vha. OsGeo4W 
+## ogr2ogr til konvertering af spatielle data mellem forskellige formater. 
+ogr2ogr er et kommandolinje program som er i stand til at både læse fra og skrive "simple features" (geodata med attributter) ud i dusinvis af forskellige formater, men i 
+denne workshop fokuserer vi primært på at skrive data til PostgreSQL og hente data fra en række meget benyttede dataformater
+(Primært MSSQL Server) 
 
+I forbindelse med oversættelsen kan ogr2ogr endvidere forskellige delopgaver, såsom udvælgelse baseret på spatielle og/eller attributværdier, kolonnevalg samt ændring af projektion under oversættelsen.
 
-## Brug af ogr2ogr til konvertering af spatielle data mellem forskellige formater. 
+### Installation og opsætning.
 
-### Klargøring (opsætning af environment variables og path i .cmd fil.
+Hvis du har installeret QGIS på din pc, har du allerede installeret ogr2ogr. Du kan umiddelbart starte med at bruge ogr2ogr ved at søge "OSGeo4W Shell" i Windows programsøger. Dette program starter en DOS kommandlinje op, hvrod der umidsdelbart er adgang til ogr2ogr
+
+En anden metode er at downloade OsGeo4W installer fra QGIS.ORG's hjemmeside https://qgis.org/en/site/forusers/alldownloads.html#osgeo4w-installer og start den op 
+Vælg "Express Install" og afkrydse "GDAL", når du skal vælge installationspakker.
+
+Hvis du har brug for de absolut nyeste og evt. beta udgaver af GDAL/OGR kan du benytte flg. hjemmeside: https://www.gisinternals.com/ og downloade herfra.
 
 ### ogr2ogr kommando grundlæggende parametre
 
->ogr2ogr [--help-general] [-skipfailures] [-append | -upsert] [-update]
->        [-select field_list] [-where restricted_where|@filename]
->        [-progress] [-sql <sql statement>|@filename] [-dialect dialect]
->        [-preserve_fid] [-fid FID] [-limit nb_features]
->        [-spat xmin ymin xmax ymax] [-spat_srs srs_def] [-geomfield field]
->        [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def] [-ct string]
->        [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]
->        dst_datasource_name src_datasource_name
->        [-lco NAME=VALUE] [-nln name]
->        [-nlt type|PROMOTE_TO_MULTI|CONVERT_TO_LINEAR|CONVERT_TO_CURVE]
->        [-dim XY|XYZ|XYM|XYZM|2|3|layer_dim] [layer [layer ...]]
->
->        # Advanced options
->        [-gt n]
->        [[-oo NAME=VALUE] ...] [[-doo NAME=VALUE] ...]
->        [-clipsrc [xmin ymin xmax ymax]|WKT|datasource|spat_extent]
->        [-clipsrcsql sql_statement] [-clipsrclayer layer]
->        [-clipsrcwhere expression]
->        [-clipdst [xmin ymin xmax ymax]|WKT|datasource]
->        [-clipdstsql sql_statement] [-clipdstlayer layer]
->        [-clipdstwhere expression]
->        [-wrapdateline] [-datelineoffset val]
->        [[-simplify tolerance] | [-segmentize max_dist]]
->        [-makevalid]
->        [-addfields] [-unsetFid] [-emptyStrAsNull]
->        [-relaxedFieldNameMatch] [-forceNullable] [-unsetDefault]
->        [-fieldTypeToString All|(type1[,type2]*)] [-unsetFieldWidth]
->        [-mapFieldType type1|All=type2[,type3=type4]*]
->        [-dateTimeTo UTC|UTC(+|-)HH|UTC(+|-)HH:MM]]
->        [-fieldmap identity | index1[,index2]*]
->        [-splitlistfields] [-maxsubfields val]
->        [-resolveDomains]
->        [-explodecollections] [-zfield field_name]
->        [-gcp ungeoref_x ungeoref_y georef_x georef_y [elevation]]* [-order n | -tps]
->        [[-s_coord_epoch epoch] | [-t_coord_epoch epoch] | [-a_coord_epoch epoch]]
->        [-nomd] [-mo "META-TAG=VALUE"]* [-noNativeData]
+Fra hjemmesiden for ogr2ogr https://gdal.org/programs/ogr2ogr.html
 
-- PostgreSQL som modtager
-- Datakilder
+```
+ogr2ogr [--help-general] [-skipfailures] [-append | -upsert] [-update]
+        [-select field_list] [-where restricted_where|@filename]
+        [-progress] [-sql <sql statement>|@filename] [-dialect dialect]
+        [-preserve_fid] [-fid FID] [-limit nb_features]
+        [-spat xmin ymin xmax ymax] [-spat_srs srs_def] [-geomfield field]
+        [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def] [-ct string]
+        [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]
+        dst_datasource_name src_datasource_name
+        [-lco NAME=VALUE] [-nln name]
+        [-nlt type|PROMOTE_TO_MULTI|CONVERT_TO_LINEAR|CONVERT_TO_CURVE]
+        [-dim XY|XYZ|XYM|XYZM|2|3|layer_dim] [layer [layer ...]]
+
+        # Advanced options
+        [-gt n]
+        [[-oo NAME=VALUE] ...] [[-doo NAME=VALUE] ...]
+        [-clipsrc [xmin ymin xmax ymax]|WKT|datasource|spat_extent]
+        [-clipsrcsql sql_statement] [-clipsrclayer layer]
+        [-clipsrcwhere expression]
+        [-clipdst [xmin ymin xmax ymax]|WKT|datasource]
+        [-clipdstsql sql_statement] [-clipdstlayer layer]
+        [-clipdstwhere expression]
+        [-wrapdateline] [-datelineoffset val]
+        [[-simplify tolerance] | [-segmentize max_dist]]
+        [-makevalid]
+        [-addfields] [-unsetFid] [-emptyStrAsNull]
+        [-relaxedFieldNameMatch] [-forceNullable] [-unsetDefault]
+        [-fieldTypeToString All|(type1[,type2]*)] [-unsetFieldWidth]
+        [-mapFieldType type1|All=type2[,type3=type4]*]
+        [-dateTimeTo UTC|UTC(+|-)HH|UTC(+|-)HH:MM]]
+        [-fieldmap identity | index1[,index2]*]
+        [-splitlistfields] [-maxsubfields val]
+        [-resolveDomains]
+        [-explodecollections] [-zfield field_name]
+        [-gcp ungeoref_x ungeoref_y georef_x georef_y [elevation]]* [-order n | -tps]
+        [[-s_coord_epoch epoch] | [-t_coord_epoch epoch] | [-a_coord_epoch epoch]]
+        [-nomd] [-mo "META-TAG=VALUE"]* [-noNativeData]
+```
+Som det ses er der rig lejlighed til at tage fejl ! Og ovenstående inkluderer end ikke de mange forskellige -lco (layer creation options) og -dsco (data set creation oiptions) knyttet til de forskellige datakilder
+
+En minimum kommasndolinje med ogr2ogr har følgende udseende: 
+```
+og2ogr -f format_name dst_datasource_name src_datasource_name [-nln name] [layer [layer ...]]
+```
+[...] betyder, at denne tekstdel i nogle tilfælde kan undværes.
+
+Vi vil bryde kommandolinjen op i en række deltekster
+
+### PostgreSQL som modtager (destination datasource)
+
+Et eksempel på den simpleste ogr2ogr kommando, som bruger PostgreSQL som data destination: 
+
+```
+ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.shp -nln fot.bygninger
+```
+ 1. Der bruges en shapefil: *bygninger.shp* som inddata (Shapefiler indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
+ 1. Data destination er en PostgreSQL database *-f "PostgreSQL"*
+ 1. Postgres databaserver og database defineres: 
+```
+ pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
+```
+ Database server server er placeret på 
+ *localhost* og med portnummer *5432*, postgres username er *myuser* og 
+ password er *mypassword* og slutteligt arbejder vi med database *geodata* på serveren
+ 1. tabelnavnet i databasen er *fot.bygninger*, dvs. tabelnavne kan inkludere et schemanavn  
+
+
+
+
+
+- Datakilder (source datasource)
   - MSSQL Server
   - GeoPackage
   - MapInfo
