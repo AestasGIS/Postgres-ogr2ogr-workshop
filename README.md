@@ -134,7 +134,7 @@ og2ogr -f format_name dst_datasource_name src_datasource_name [-nln name] [layer
 ```
 [...] betyder, at denne tekstdel i nogle tilfælde kan undværes.
 
-Vi gennemgår kommadolinjen med en række eksempler, som løbende udvider bruger af ogr2ogr mange faciliteter.
+Vi gennemgår kommadolinjen med en række eksempler, som løbende udvider brugen af ogr2ogr's mange faciliteter.
 
 ### PostgreSQL som modtager (destination datasource)
 
