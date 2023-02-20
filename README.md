@@ -72,7 +72,8 @@ Vælg "Express Install" og afkrydse "GDAL", når du skal vælge installationspak
 
 Hvis du har brug for de absolut nyeste og evt. beta udgaver af GDAL/OGR kan du benytte flg. hjemmeside: https://www.gisinternals.com/ og downloade herfra.
 
-Hvis du skal bruge ogr2ogr i et DOS script, kræver skal man have div. path environment variable på plads, før ogr2ogr kan fungere
+Hvis du skal bruge ogr2ogr i et DOS script, kræver skal man have div. path environment variable på plads, før ogr2ogr kan fungere.  
+
 Eksempel på nødvendige kommandoer i en .cmd-fil, som skal udføre ogr2ogr
 ```
 set OSGEO4W_ROOT=C:\nst_sporimport-master\gdal
@@ -82,7 +83,6 @@ REM Ecoding for datakilder, der skal indlæses i PostgreSQL VIGTIG, hvis du indl
 SET PGCLIENTENCODING=WIN-1252
 REM ogr2ogr...... kommandolinje for ogr2ogr
 ```
-Efter udførelsen af disse kommandoer kan ogr fungere korrekt i et alm. DOS miljø
 
 ### ogr2ogr kommando grundlæggende parametre
 
@@ -143,7 +143,7 @@ Et eksempel på den simpleste ogr2ogr kommando, som bruger PostgreSQL som data d
 ```
 ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata active_schema=fot" bygninger.tab
 ```
- 1. Der bruges en shapefil: *bygninger.tab* som inddata (Tab-filer indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
+ 1. Der bruges en tab-fil: *bygninger.tab* som inddata (Tab-filer indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
  1. Data destination er en PostgreSQL database *-f "PostgreSQL"*
  1. Postgres databaserver og database defineres: 
 ```
