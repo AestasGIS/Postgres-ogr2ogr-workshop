@@ -141,19 +141,20 @@ Vi gennemgår kommadolinjen med en række eksempler, som løbende udvider bruger
 Et eksempel på den simpleste ogr2ogr kommando, som bruger PostgreSQL som data destination: 
 
 ```
-ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tabshp -nln fot.bygninger
+ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata active_schema=fot" bygninger.tab
 ```
- 1. Der bruges en shapefil: *bygninger.shp* som inddata (Shapefiler indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
+ 1. Der bruges en shapefil: *bygninger.tab* som inddata (Tab-filer indeholder kun eet lag, så det er ikke nødvendigt at definere et specifikt lagnavn.
  1. Data destination er en PostgreSQL database *-f "PostgreSQL"*
  1. Postgres databaserver og database defineres: 
 ```
- pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
+ pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata active_schema=fot"
 ```
  Database server server er placeret på 
  *localhost* og med portnummer *5432*, postgres username er *myuser* og 
- password er *mypassword* og slutteligt arbejder vi med database *geodata* på serveren
- 1. tabelnavnet i databasen er *fot.bygninger*, dvs. tabelnavne kan inkludere et schemanavn  
-
+ password er *mypassword* og vi arbejder med database *geodata* på serveren. Slutteligt er parameter *active_schema* sat, 
+ således ogr2ogr primært vil bruge dette schema når tabelangivelser på kommadolinjen ikke indeholder en specifik schema definition
+ 1. tabelnavnet bliver databasen er *fot.bygninger*, fordi *active_schema* er sat til "fot". 
+ 
 
 ### Garanti for, at alle elementer er af samme type.
 
@@ -161,25 +162,41 @@ Tab-filer (og andre datakilder) skelner ikke mellem simple og mulityper. Postgre
 ogr2ogr kan løse dette problem ved at tilføje qualifier *-nlt PROMOTE_TO_MULTI* , som konverterer
  alle ikke-multi elementer til de tilsvarende multi element typer
 
+Hvis der arbejdes med datakilder som tillader forskellige geometritype i samme datakilde - som f.eks tab-filer - kan 
+man endvidere benytte *-where* qualifier til at filtre på geometrityper.
+
+``` 
+ogr2ogr -nlt PROMOTE_TO_MULTI -where="OGR_GEOMETRY='POLYGON' OR OGR_GEOMETRY='MULTIPOLYGON'" -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
 ```
-ogr2ogr -nlt PROMOTE_TO_MULTI -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.shp -nln fot.bygninger
+
+### Styring af projektion 
+ogr2ogr har 3 qualifiers til at styre projeksions funktioner 
+
+  1. -a_srs EPSG:25832 : Sætter datasæt i modtagerkilder til at være EPSG:25832 ( i dette tilfælde) uanset om datakilde indeholder en anden (eller ingen) projektionsangivelse. Kan bruges til at rette evt forkte projektionsdefinitioner i datakilder. 
+  1. -s_srs EPSG:4326: Sætter datakilde til en bestemt projektion. I dette tilfælde EPSG:42326
+  1. -t_srs EPSG:25832: Sætte motager datakilde til en bestemt projektion (EPSG:25832). 
+  
+Ved brug af både -s_srs og -t_srs med forskellige projektionsdefinitioner vil ogr2ogr foretage en projektions konvertering af data. 
+
+```
+ogr2ogr -s_srs EPSG:25832 -t_srs EPSG:4326 -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
+```
+... vil projektions konvertere datakilde fra EPSG:25832 til EPSG:4326 før data indlæses i PostgreSQL 
+
+### MSSQLS Server som datasource
+
+MSSQL Server datakilde definition:
+ - SQLServer security:  "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;"
+ - Integrated security: "MSSQL:server=localhost\sqlexpress;database=geodata;trusted_connection=yes;"
+
+ogr2ogr eksempel fra MSSQL Server til PostgreSQL med SQLServer security: 
+```
+ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;" \
+-sql= "SELECT *, CONVERT(varchar, getdate(), 23) AS ogr_date FROM [ms_schema].[ms_table] -- WHERE.... " -nln=pg_schema.pg_table
+
 ```
 
-
-
-
-- Datakilder (source datasource)
-  - MSSQL Server
-  - GeoPackage
-  - MapInfo
-  - Shape
-  - WFS
-
-- Projection valg -i
-- Schema valg
-- Overskrivning / opdatering af data
-- Tilføjelse af af adm data (ogr select)
-- Tuning af kommando med buffer
+Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
 
 ## Opsætning af Scheduler til automatisk kørsel af ogr2ogr script
 - Opsætning af Scheduler via kommandlinjen. 
