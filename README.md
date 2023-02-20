@@ -183,7 +183,7 @@ ogr2ogr -s_srs EPSG:25832 -t_srs EPSG:4326 -f "PostgreSQL" pg:"host=localhost po
 ```
 ... vil projektions konvertere datakilde fra EPSG:25832 til EPSG:4326 før data indlæses i PostgreSQL 
 
-### MSSQLS Server som datasource
+### MSSQL Server som datasource
 
 MSSQL Server datakilde definition:
  - SQLServer security:  "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;"
@@ -196,7 +196,16 @@ ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypass
 
 ```
 
+### Brug af ogrinfo
+
+```
+ ogrinfo -q -sql "ALTER TABLE pg_schema.pg_table ADD aendringsdato varchar(10) NULL DEFAULT current_date::character varying" PG:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
+ ogrinfo -q -sql "UPDATE pg_schema.pg_table SET aendringsdato=current_date::character varying" PG:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
+
+```
+
 Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
+
 
 ## Opsætning af Scheduler til automatisk kørsel af ogr2ogr script
 - Opsætning af Scheduler via kommandlinjen. 
