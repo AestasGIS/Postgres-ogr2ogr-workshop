@@ -169,6 +169,13 @@ man endvidere benytte *-where* qualifier til at filtre på geometrityper.
 ogr2ogr -nlt PROMOTE_TO_MULTI -where="OGR_GEOMETRY='POLYGON' OR OGR_GEOMETRY='MULTIPOLYGON'" -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
 ```
 
+I PostgreSQL kan man tjekke geometri type i en tabel (pg_schema.pg_table i eksemplet) med følgende:
+
+``` 
+SELECT ST_geometrytype(geom), COUNT(*) FROM pg_schema.pg_table GROUP BY 1 ORDER BY 2
+``` 
+
+
 ### Styring af projektion 
 ogr2ogr har 3 qualifiers til at styre projeksions funktioner 
 
@@ -181,7 +188,7 @@ Ved brug af både -s_srs og -t_srs med forskellige projektionsdefinitioner vil o
 ```
 ogr2ogr -s_srs EPSG:25832 -t_srs EPSG:4326 -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
 ```
-... vil projektions konvertere datakilde fra EPSG:25832 til EPSG:4326 før data indlæses i PostgreSQL 
+... vil projektions-konvertere datakilde fra EPSG:25832 til EPSG:4326 før data indlæses i PostgreSQL 
 
 ### MSSQL Server som datasource
 
@@ -195,6 +202,11 @@ ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypass
 -sql= "SELECT *, CONVERT(varchar, getdate(), 23) AS ogr_date FROM [ms_schema].[ms_table] -- WHERE.... " -nln=pg_schema.pg_table
 
 ```
+
+### Pitfalls
+
+Der er mange af ogr2ogr qualifiers, som udelukker hinanden, eksempelvis *-spat* og *-where*. Generelt skal alle qualifiers, som begrænser rækker eller kolonner, bruges med varsomhed sammen. 
+Der er det bedre direkte af bruge *-sql* og definere filtreringen i SQL. SQL kan også bruges på datakilder som ikke er databaser.
 
 ### Brug af ogrinfo
 
