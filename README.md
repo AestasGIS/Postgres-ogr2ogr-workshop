@@ -225,9 +225,63 @@ Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
 - Ændringer i PostgreSQL opsætning
 - Konvertering af csv fil til tabel inkl. rollover af logning
 - Opsætning af Schedule
+
 ## Sikkerhedsopsætning i PostgreSQL.
-- Roller i PostgreSQL - ressourceroller og brugerroller.
-- Eksempel Script  
+
+I dette afsnit gennemgår vi (hurtigt) sikkerhedssystemet i PostgreSQL. Der beskrives en række "do and don't-s" ved sikkerhedsopsætning i PostgreSQL.
+
+Slutteligt er der et komplet eksempel på opsætning, hvorldes man kan gennemføre en fornuftig sikkerheds opsætning i en PostgreSQL database.   
+
+ - Sikkerheds opsætning i Postgres varetages af *roller*.
+ - En rolle er en identitet, som tildeles eller fratages *rettigheder* i databasen. 
+ - En rettighed er muligheden for at foretage en eller flere *funktioner* i databasen, f.eks. at kunne udvælge data fra en bestemt tabel. 
+ - Man kan tidele rettigheder direkte til en rolle, men man kan også tilmelde en rolle til en anden rolle, således den første rolle arver rettighederne fra rolle nr. 2
+ - To typer af roller: interaktive brugere (*WITH LOGIN*) og ressourceroller.
+ - Interaktive brugere (repræsenterer dem, der sidder foran skærmen) skabes som ”roller med login rettigheder”.
+ - Af historiske årsager kan en rolle med login også kaldes en *user*.
+
+```
+CREATE ROLE bo WITH LOGIN PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
+CREATE USER bo PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
+```
+*INHERIT* betyder, at rollen arver rettigheder fra de rolle som den den interaktive roller meldes ind i. De to kommandoer giver det samme resultat. 
+
+ - Ressourcegrupper er roller, som tildeles specifikke rettigheder over for tabeller, schemaer og andre objekter i databasen. 
+Ressourcegrupper tildeles *ikke* login rettigheder, men fungerer som ”skabeloner”  eller "profiler" for database adgang til interaktive brugere.
+
+```
+CREATE ROLE gisdb_write; 
+GRANT CONNECT, TEMP ON DATABASE gisdb TO gisdb_write;
+GRANT USAGE ON SCHEMA data, lookup TO gisdb_write;;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA data TO gisdb_write;
+GRANT SELECT ON ALL TABLES IN SCHEMA lookup TO gisdb_write;
+```
+ 
+Interaktive brugere kan tildeles rettigheder ved at ”melde dem ind” i ressourcegrupper
+
+```
+GRANT gisdb_write TO bo;
+```
+
+Interaktive brugere fratages rettigheder ved at ”melde dem ud”  af ressourcegrupper
+
+```
+REVOKE gisdb_write TO bo;
+```
+
+###Regler for at lave sikkerhedsopsætning med mindst risiko for at havne på den lukkede afdeling..
+
+ - Lav interaktive roller for brugere uden andre direkte rettigheder
+ - Lav ressource grupper uden login rettigheder, men med specifikke rettigheder til objekter i databasen.
+ - Tildel (kun) den enkelte bruger nødvendige rettigheder ved at melde bruger ind i de relevante ressource grupper.
+ - Opret schemaer i databasen, som kan bruges til opdeling af tabeller i forskellige grupper (datatabeller, opslagstabeller osv.) 
+ - Tildel rettigheder på schema niveau, ikke på tabel niveau
+
+Et real-life script til opsætning af en database efter ovenstående principper: https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/skovuser_administration.sql
+
+
+
+
 ## Forskelle på Windows miljø og Linux miljø 
 
 
