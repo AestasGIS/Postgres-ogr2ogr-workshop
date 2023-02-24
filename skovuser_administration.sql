@@ -27,7 +27,7 @@
    -- skov_datawriter    : Kan læse data fra alle schemaer i databasen og skrive i schema "data";
       benyttes til "data indsamlere"
 
-   -- skov_administrator : Har alle rettigheder inkl. oprettelse af nye schemaer; opdatering af 
+   -- skov_administrator : Har alle rettigheder inkl. oprettelse af nye schemaer og tabeller; opdatering af 
       opslagstabeller osv.
 
    Slutteligt oprettes personlige brugerkonti (roller med login rettighed samt INHERIT) som tildeles
