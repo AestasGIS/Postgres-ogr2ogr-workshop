@@ -219,12 +219,55 @@ Der er det bedre direkte af bruge *-sql* og definere filtreringen i SQL. SQL kan
 Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
 
 
+
+## Logning af forespørgsler
+
+Der er flere måder at enable logning i PostgreSQL. Flertallet kræver installation af en extension. 
+
+Nedenstående metode kræver ingen ekstra installation,  men kræver en række rettelser i *postgres.conf* filen placeret i *data* mappen for PostgreSQL 
+- Ændringer i PostgreSQL opsætning. Find nedenstående afsnit i filen og tilpas parametre
+```
+#------------------------------------------------------------------------------
+# ERROR REPORTING AND LOGGING
+#------------------------------------------------------------------------------
+
+# - Where to Log -
+
+log_destination = 'csvlog'                       # 'csvlog' means that data is placed i an csv file
+                                                 # Valid values are combinations of
+                                                 # stderr, csvlog, syslog, and eventlog,
+                                                 # depending on platform.  csvlog
+                                                 # requires logging_collector to be on.
+
+# This is used when logging to stderr:
+logging_collector = on                           # Enable capturing of stderr and csvlog
+                                                 # into log files. Required to be on for
+                                                 # csvlogs. (change requires restart)
+
+log_statement = 'none';                          # Generally disable logging
+                                                 # Logging will be enbled on a per database basis
+
+# These are only used if logging_collector is on:
+log_directory = 'pg_log'                         # directory where log files are written,
+                                                 # can be absolute or relative to PGDATA
+
+log_filename = 'pglog_%Y_%m_%d.log'              # log file name pattern, per day example
+                                                 # can include strftime() escapes
+
+		
+```
+
+ - Enable logging in a specific database
+```
+ALTER DATABASE my_very_important_database SET log_statement = 'all';
+```
+
+- Konvertering af csv fil til tabel inkl. rollover af logning
+
+
+
 ## Opsætning af Scheduler til automatisk kørsel af ogr2ogr script
 - Opsætning af Scheduler via kommandlinjen. 
-## Logning af forespørgsler
-- Ændringer i PostgreSQL opsætning
-- Konvertering af csv fil til tabel inkl. rollover af logning
-- Opsætning af Schedule
 
 ## Sikkerhedsopsætning i PostgreSQL.
 
@@ -238,13 +281,13 @@ Slutteligt er der et komplet eksempel på opsætning, hvorldes man kan gennemfø
  - Man kan tidele rettigheder direkte til en rolle, men man kan også tilmelde en rolle til en anden rolle, således den første rolle arver rettighederne fra rolle nr. 2
  - To typer af roller: interaktive brugere (*WITH LOGIN*) og ressourceroller.
  - Interaktive brugere (repræsenterer dem, der sidder foran skærmen) skabes som ”roller med login rettigheder”.
- - Af historiske årsager kan en rolle med login også kaldes en *user*.
+ - Af historiske årsager kan en rolle med login også kaldes en *user*. De to nedenstående kommandoer giver nøjagtigt det samme resultat:
 
 ```
 CREATE ROLE bo WITH LOGIN PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
 CREATE USER bo PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
 ```
-*INHERIT* betyder, at rollen arver rettigheder fra de rolle som den den interaktive roller meldes ind i. De to kommandoer giver det samme resultat. 
+*INHERIT* betyder, at rollen arver rettigheder fra de roller som den interaktive rolle meldes ind i. 
 
  - Ressourcegrupper er roller, som tildeles specifikke rettigheder over for tabeller, schemaer og andre objekter i databasen. 
 Ressourcegrupper tildeles *ikke* login rettigheder, men fungerer som ”skabeloner”  eller "profiler" for database adgang til interaktive brugere.
@@ -278,9 +321,6 @@ REVOKE gisdb_write TO bo;
  - Tildel rettigheder på schema niveau, ikke på tabel niveau
 
 Et real-life script til opsætning af en database efter ovenstående principper: https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/skovuser_administration.sql
-
-
-
 
 ## Forskelle på Windows miljø og Linux miljø 
 
