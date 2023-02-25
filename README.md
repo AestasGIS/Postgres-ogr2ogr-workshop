@@ -225,39 +225,29 @@ Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
 Der er flere måder at enable logning i PostgreSQL. Flertallet kræver installation af en extension. 
 
 Nedenstående metode kræver ingen ekstra installation,  men kræver en række rettelser i *postgres.conf* filen placeret i *data* mappen for PostgreSQL 
-- Ændringer i PostgreSQL opsætning. Find nedenstående afsnit i filen og tilpas parametre
+- Ændringer i PostgreSQL opsætning. Find nedenstående afsnit i filen og tilpas flg. parametre
 ```
 #------------------------------------------------------------------------------
 # ERROR REPORTING AND LOGGING
 #------------------------------------------------------------------------------
 
-# - Where to Log -
-
 log_destination = 'csvlog'                       # 'csvlog' means that data is placed i an csv file
-                                                 # Valid values are combinations of
-                                                 # stderr, csvlog, syslog, and eventlog,
-                                                 # depending on platform.  csvlog
-                                                 # requires logging_collector to be on.
 
-# This is used when logging to stderr:
-logging_collector = on                           # Enable capturing of stderr and csvlog
-                                                 # into log files. Required to be on for
-                                                 # csvlogs. (change requires restart)
+logging_collector = on                           # Required to be on for csvlogs. 
 
-log_statement = 'none';                          # Generally disable logging
+log_statement = 'none';                          # Generally disable logging.
                                                  # Logging will be enbled on a per database basis
 
-# These are only used if logging_collector is on:
 log_directory = 'pg_log'                         # directory where log files are written,
-                                                 # can be absolute or relative to PGDATA
+                                                 # relative to PGDATA
 
 log_filename = 'pglog_%Y_%m_%d.log'              # log file name pattern, per day example
-                                                 # can include strftime() escapes
 
 		
 ```
 
- - Enable logging in a specific database
+ - Aktivér logning in en specifickdatabase (brug PGAdmin):
+
 ```
 ALTER DATABASE my_very_important_database SET log_statement = 'all';
 ```
@@ -275,19 +265,19 @@ I dette afsnit gennemgår vi (hurtigt) sikkerhedssystemet i PostgreSQL. Der besk
 
 Slutteligt er der et komplet eksempel på opsætning, hvorldes man kan gennemføre en fornuftig sikkerheds opsætning i en PostgreSQL database.   
 
- - Sikkerheds opsætning i Postgres varetages af *roller*.
+ - Sikkerheds opsætning i Postgres varetages af *roles* eller *roller* på dansk.
  - En rolle er en identitet, som tildeles eller fratages *rettigheder* i databasen. 
  - En rettighed er muligheden for at foretage en eller flere *funktioner* i databasen, f.eks. at kunne udvælge data fra en bestemt tabel. 
  - Man kan tidele rettigheder direkte til en rolle, men man kan også tilmelde en rolle til en anden rolle, således den første rolle arver rettighederne fra rolle nr. 2
  - To typer af roller: interaktive brugere (*WITH LOGIN*) og ressourceroller.
  - Interaktive brugere (repræsenterer dem, der sidder foran skærmen) skabes som ”roller med login rettigheder”.
- - Af historiske årsager kan en rolle med login også kaldes en *user*. De to nedenstående kommandoer giver nøjagtigt det samme resultat:
+ - Af historiske årsager kan en rolle med login også kaldes en *user*. De to nedenstående kommandoer giver det samme resultat:
 
 ```
-CREATE ROLE bo WITH LOGIN PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
-CREATE USER bo PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT;
+CREATE ROLE bo WITH LOGIN PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT -- brug af "role with login";
+CREATE USER bo PASSWORD 'thomsen' VALID UNTIL ‘2025-01-01' INHERIT -- brug af "user"; samme resultat;
 ```
-*INHERIT* betyder, at rollen arver rettigheder fra de roller som den interaktive rolle meldes ind i. 
+*INHERIT* betyder, at rollen arver rettigheder fra de roller som den interaktive rolle senere meldes ind i. 
 
  - Ressourcegrupper er roller, som tildeles specifikke rettigheder over for tabeller, schemaer og andre objekter i databasen. 
 Ressourcegrupper tildeles *ikke* login rettigheder, men fungerer som ”skabeloner”  eller "profiler" for database adgang til interaktive brugere.
@@ -301,13 +291,13 @@ GRANT SELECT ON ALL TABLES IN SCHEMA lookup TO gisdb_write;
 ```
  
 Interaktive brugere kan tildeles rettigheder ved at ”melde dem ind” i ressourcegrupper
-
 ```
 GRANT gisdb_write TO bo;
 ```
+Efter denne *GRANT* kommando har user "bo" fået tildelt (dvs. adderet)  samme rettigheder som rolle "gisdb_write"
+
 
 Interaktive brugere fratages rettigheder ved at ”melde dem ud”  af ressourcegrupper
-
 ```
 REVOKE gisdb_write TO bo;
 ```
@@ -316,9 +306,9 @@ REVOKE gisdb_write TO bo;
 
  - Lav interaktive roller for brugere uden andre direkte rettigheder
  - Lav ressource grupper uden login rettigheder, men med specifikke rettigheder til objekter i databasen.
- - Tildel (kun) den enkelte bruger nødvendige rettigheder ved at melde bruger ind i de relevante ressource grupper.
- - Opret schemaer i databasen, som kan bruges til opdeling af tabeller i forskellige grupper (datatabeller, opslagstabeller osv.) 
- - Tildel rettigheder på schema niveau, ikke på tabel niveau
+ - Tildeling eller fratagelse af rettigheder foretages (kun) ved at melde bruger ind i eller ud af de relevante ressource grupper.
+ - Opret schemaer i databasen, som kan bruges til *funktionel* opdeling af tabeller i forskellige grupper (datatabeller, opslagstabeller osv.) 
+ - Og tildel så rettigheder på schema niveau, ikke på tabel niveau.
 
 Et real-life script til opsætning af en database efter ovenstående principper: https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/skovuser_administration.sql
 
