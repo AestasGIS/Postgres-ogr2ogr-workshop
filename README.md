@@ -231,19 +231,31 @@ Nedenstående metode kræver ingen ekstra installation,  men kræver en række r
 # ERROR REPORTING AND LOGGING
 #------------------------------------------------------------------------------
 
+...#log_directory = 'pg_log' to log_directory = 'pg_log'
+
+...#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log' to log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+
+...#log_statement = 'none' to log_statement = 'all'
+
+...#logging_collector = off to logging_collector = on
+
+
 log_destination = 'csvlog'                       # 'csvlog' means that data is placed i an csv file
 
 logging_collector = on                           # Required to be on for csvlogs. 
 
 log_statement = 'none';                          # Generally disable logging.
                                                  # Logging will be enbled on a per database basis
+		         # to minimize log file size
 
 log_directory = 'pg_log'                         # directory where log files are written,
                                                  # relative to PGDATA
 
 log_filename = 'pglog_%Y_%m_%d.log'              # log file name pattern, per day example
+                                                 # "pglog" kan med fordel erstattes med servernavn eller lign.
 
-		
+log_rotation_age = 1d                            # Automatic rotation of logfiles will happen after 1 day		
+
 ```
 
  - Aktivér logning in en specifickdatabase (brug PGAdmin):
@@ -257,7 +269,36 @@ ALTER DATABASE my_very_important_database SET log_statement = 'all';
 
 
 ## Opsætning af Scheduler til automatisk kørsel af ogr2ogr script
-- Opsætning af Scheduler via kommandlinjen. 
+
+Der findes en app i kotrolpanelet: "Administration" --> "Opgavestyring" som giver et 
+"Peg og klik" brugerflade til styring opgaver. Jeg synes personligt, at det er nemmere 
+og mere overskueligt at benytte kommandolinje værktøjet "SCHTASKS" 
+
+For at opsætte et dagligt job:
+  1. I Start --> Søgefeltet (Skiv for at søge): Led efter "CMD.exe".
+  1. Højreklik på øverste (eller eneste) resultat og klik på "Kør som administrator"
+  1. Klik på "Ja" for at acceptere at CMD kører med administrator privilegier.
+  1. I CMD billedet skrives følgende kommando for at opsætte et daglig job startende kl. 11.00: 
+
+```
+SCHTASKS /CREATE /SC DAILY /TN "PG og OGR jobs\Indlæs PG log-fil" /TR "D:\MinMappe\pg_load_log_csv.cmd" /ST 11:00
+```
+
+For at opsætte et ugentligt job: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
+```
+SCHTASKS /CREATE /SC WEEKLY /D SUN /TN "PG og OGR jobs\Overfør data fra LOIS til PG" /TR "D:\MinMappe\OGR_LOIS_til_PG.cmd" /ST 11:00
+```
+
+For at opsætte et ugentligt job: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
+```
+SCHTASKS /CREATE /SC WEEKLY /D SUN /TN "PG og OGR jobs\Overfør data fra LOIS til PG" /TR "D:\MinMappe\OGR_LOIS_til_PG.cmd" /ST 11:00
+```
+
+For at fjeren et eksisterende jobs: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
+```
+SCHTASKS /DELETE /TN /TN "PG og OGR jobs\Overfør data fra LOIS til PG"
+```
+
 
 ## Sikkerhedsopsætning i PostgreSQL.
 
@@ -301,7 +342,6 @@ Interaktive brugere fratages rettigheder ved at ”melde dem ud”  af ressource
 ```
 REVOKE gisdb_write TO bo;
 ```
-
 ###Regler for at lave sikkerhedsopsætning med mindst risiko for at havne på den lukkede afdeling..
 
  - Lav interaktive roller for brugere uden andre direkte rettigheder
