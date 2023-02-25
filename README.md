@@ -272,7 +272,8 @@ ALTER DATABASE my_very_important_database SET log_statement = 'all';
 
 Der findes en app i kotrolpanelet: "Administration" --> "Opgavestyring" som giver et 
 "Peg og klik" brugerflade til styring opgaver. Jeg synes personligt, at det er nemmere 
-og mere overskueligt at benytte kommandolinje værktøjet "SCHTASKS" 
+og mere overskueligt at benytte kommandolinje værktøjet "SCHTASKS"
+Se: https://ss64.com/nt/schtasks.html
 
 For at opsætte et dagligt job:
   1. I Start --> Søgefeltet (Skiv for at søge): Led efter "CMD.exe".
