@@ -76,13 +76,13 @@ Hvis du skal bruge ogr2ogr i et DOS script, kræver skal man have div. path envi
 
 Eksempel på nødvendige kommandoer i en .cmd-fil, som skal udføre ogr2ogr
 ```
-set OSGEO4W_ROOT=C:\nst_sporimport-master\gdal
+set OSGEO4W_ROOT=c:\OSGeo4W
 set path=%OSGEO4W_ROOT%\bin;%OSGEO4W_ROOT%\apps\proj-dev\bin;%OSGEO4W_ROOT%\apps\gdal-dev\bin;%WINDIR%\system32;%WINDIR%;%WINDIR%\system32\WBem
 SET PROJ_LIB=%OSGEO4W_ROOT%\share\proj
-REM Ecoding for datakilder, der skal indlæses i PostgreSQL VIGTIG, hvis du indlæsesr data i PostgreSQL !!!
 SET PGCLIENTENCODING=WIN-1252
 REM ogr2ogr...... kommandolinje for ogr2ogr
 ```
+
 
 ### ogr2ogr kommando grundlæggende parametre
 
@@ -266,7 +266,7 @@ ALTER DATABASE my_very_important_database SET log_statement = 'all';
 
 - Konvertering af csv fil til tabel inkl. rollover af logning
 
-
+Se eksempel, hvorledes csv files omdannes til tabeller i PostgreSQL vha. ogr2ogr: https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/csv2postgres.cmd 
 
 ## Opsætning af Scheduler til automatisk kørsel af ogr2ogr script
 
