@@ -70,6 +70,8 @@ Hvis du har installeret QGIS på din pc, har du allerede installeret ogr2ogr. Du
 En anden metode er at downloade OsGeo4W installer fra QGIS.ORG's hjemmeside https://qgis.org/en/site/forusers/alldownloads.html#osgeo4w-installer og start den op 
 Vælg "Express Install" og afkrydse "GDAL", når du skal vælge installationspakker.
 
+Denne hurtige installation medtager dog ikke alle drivere. Så hvis der mangler en driver efter "Express Install" kan man med fordel benytte installationsværktøjet igen og denne gang bruge "Advanced Install", sektion "Libs" for at installere ekstra drivere.
+
 Hvis du har brug for de absolut nyeste og evt. beta udgaver af GDAL/OGR kan du benytte flg. hjemmeside: https://www.gisinternals.com/ og downloade herfra.
 
 Hvis du skal bruge ogr2ogr i et DOS script, kræver skal man have div. path environment variable på plads, før ogr2ogr kan fungere.  
