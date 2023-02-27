@@ -11,13 +11,13 @@ Denne workshop vil beskrive opgaver vedrørende:
  - Logning af forespørgsler
  - Sikkerhedsopsætning i PostgreSQL.  
  - Forskelle på Windows miljø og Linux miljø 
- 
- Der vil specielt blive lagt vægt på konverteringen fra  MSSQL Server til PostgreSQL, 
- men andre datakilder vil også blive beskrevet
 
-Hvor det er muligt, vil dette dokument blot henvise til andre hjemmesider for de forskellige operationer. 
-(I stil med *ikke* at genopfinde den dybe tallerken og det varme vand).
-I skrivende stund er disse hjemmesider "up to date" og retvisende. Dette kan ikke garanteres ud i al fremtid.
+Det allerførste råd: Hvis man blot lejlighedviss kal konvertere en enkelt fil eller tabel: Brug QGIS til dette formål. 
+ogr2ogr er et kommandolinje værktøj som kan bruges til en meget lang række 
+spatielle konverterings ogaver - og derfor kan være komplekst (og frustrerende  ) at bruge
+
+Men hvis du har et konverterings job, som skal repeteres og automatiseres, er ogr2ogr det ideelle
+værktøj til denne slag opgaver.
 
 ## Installation af PostgreSQL på Windows server.
 
