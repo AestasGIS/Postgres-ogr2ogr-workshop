@@ -82,12 +82,13 @@ SET PROJ_LIB=%OSGEO4W_ROOT%\share\proj
 SET PGCLIENTENCODING=WIN-1252
 REM ogr2ogr...... kommandolinje for ogr2ogr
 ```
+Et godt råd ved udfærdigelse at scripts: Genbrug virkende eksempler. Man vil - erfaringsmæssigt - lave masser af fejl ved "nyprogrammering". 
+Hvis man skal starte helt forfra: Først skriv den mest simple kommandolinje, som klarer arbejdet; derefter forfin denne, fungerende kommando med ekstra qualifiers 
 
 
 ### ogr2ogr kommando grundlæggende parametre
 
 Fra hjemmesiden for ogr2ogr https://gdal.org/programs/ogr2ogr.html
-
 ```
 ogr2ogr [--help-general] [-skipfailures] [-append | -upsert] [-update]
         [-select field_list] [-where restricted_where|@filename]
@@ -139,7 +140,6 @@ Vi gennemgår kommadolinjen med en række eksempler, som løbende udvider brugen
 ### PostgreSQL som modtager (destination datasource)
 
 Et eksempel på den simpleste ogr2ogr kommando, som bruger PostgreSQL som data destination: 
-
 ```
 ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata active_schema=fot" bygninger.tab
 ```
@@ -155,6 +155,18 @@ ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypass
  således ogr2ogr primært vil bruge dette schema når tabelangivelser på kommadolinjen ikke indeholder en specifik schema definition
  1. tabelnavnet bliver databasen er *fot.bygninger*, fordi *active_schema* er sat til "fot". 
  
+### Speedup af indlæsning
+
+For mange destination sources gælder det, at indlæsning kan optimeres; eksempelvis for PostgreSQL:
+```
+ogr2ogr --config PG_USE_COPY YES -gt 100000 -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata active_schema=fot" bygninger.tab
+```
+hvor --config PG_USE_COPY YES betyder, at PostgreSQL driversn benytter *COPY...*  i stedet for *INSERT...* til indskrivning af data
+og -gt 100000 indskriver op til 100000 poster ad gangen (tællet kan ændres)
+
+Man skal dog være varsom med at bruge *-gt*: Benyttes den sammen med *-skipfailures*, som får  ogr2ogr til at fortsætte efter fejlindlæsning af en post, risikerer man at
+ogr2ogr skipper hele bufferen, dvs, den fejlramte post samt 99999 andre poster, som sandsynligvis ikke er fejlbehæftede.
+
 
 ### Garanti for, at alle elementer er af samme type.
 
@@ -164,13 +176,10 @@ ogr2ogr kan løse dette problem ved at tilføje qualifier *-nlt PROMOTE_TO_MULTI
 
 Hvis der arbejdes med datakilder som tillader forskellige geometritype i samme datakilde - som f.eks tab-filer - kan 
 man endvidere benytte *-where* qualifier til at filtre på geometrityper.
-
 ``` 
 ogr2ogr -nlt PROMOTE_TO_MULTI -where="OGR_GEOMETRY='POLYGON' OR OGR_GEOMETRY='MULTIPOLYGON'" -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
 ```
-
 I PostgreSQL kan man tjekke geometri type i en tabel (pg_schema.pg_table i eksemplet) med følgende:
-
 ``` 
 SELECT ST_geometrytype(geom), COUNT(*) FROM pg_schema.pg_table GROUP BY 1 ORDER BY 2
 ``` 
@@ -184,7 +193,6 @@ ogr2ogr har 3 qualifiers til at styre projeksions funktioner
   1. -t_srs EPSG:25832: Sætte motager datakilde til en bestemt projektion (EPSG:25832). 
   
 Ved brug af både -s_srs og -t_srs med forskellige projektionsdefinitioner vil ogr2ogr foretage en projektions konvertering af data. 
-
 ```
 ogr2ogr -s_srs EPSG:25832 -t_srs EPSG:4326 -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" bygninger.tab -nln fot.bygninger
 ```
@@ -198,9 +206,8 @@ MSSQL Server datakilde definition:
 
 ogr2ogr eksempel fra MSSQL Server til PostgreSQL med SQLServer security: 
 ```
-ogr2ogr -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;" \
+ogr2ogr -dim XY -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;" \
 -sql= "SELECT *, CONVERT(varchar, getdate(), 23) AS ogr_date FROM [ms_schema].[ms_table] -- WHERE.... " -nln=pg_schema.pg_table
-
 ```
 
 ### Pitfalls
@@ -213,12 +220,8 @@ Der er det bedre direkte af bruge *-sql* og definere filtreringen i SQL. SQL kan
 ```
  ogrinfo -q -sql "ALTER TABLE pg_schema.pg_table ADD aendringsdato varchar(10) NULL DEFAULT current_date::character varying" PG:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
  ogrinfo -q -sql "UPDATE pg_schema.pg_table SET aendringsdato=current_date::character varying" PG:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata"
-
 ```
-
 Se i øvrigt multiple eksempler fra : https://github.com/bvthomsen/ogr_scripts
-
-
 
 ## Logning af forespørgsler
 
@@ -258,12 +261,11 @@ log_rotation_age = 1d                            # Automatic rotation of logfile
 
 ```
 
- - Aktivér logning in en specifickdatabase (brug PGAdmin):
+ - Aktivér logning in en specifick database (brug PGAdmin):
 
 ```
 ALTER DATABASE my_very_important_database SET log_statement = 'all';
 ```
-
 - Konvertering af csv fil til tabel inkl. rollover af logning
 
 Se eksempel, hvorledes csv files omdannes til tabeller i PostgreSQL vha. ogr2ogr: https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/csv2postgres.cmd 
@@ -284,22 +286,20 @@ For at opsætte et dagligt job:
 ```
 SCHTASKS /CREATE /SC DAILY /TN "PG og OGR jobs\Indlæs PG log-fil" /TR "D:\MinMappe\pg_load_log_csv.cmd" /ST 11:00
 ```
-
 For at opsætte et ugentligt job: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
 ```
 SCHTASKS /CREATE /SC WEEKLY /D SUN /TN "PG og OGR jobs\Overfør data fra LOIS til PG" /TR "D:\MinMappe\OGR_LOIS_til_PG.cmd" /ST 11:00
 ```
-
 For at opsætte et ugentligt job: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
 ```
 SCHTASKS /CREATE /SC WEEKLY /D SUN /TN "PG og OGR jobs\Overfør data fra LOIS til PG" /TR "D:\MinMappe\OGR_LOIS_til_PG.cmd" /ST 11:00
 ```
+Man kan bruge /RU *username* og /RP *password* til at køre et task med en specifik  brugerkonto
 
-For at fjeren et eksisterende jobs: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
+For at fjerne et eksisterende jobs: Start CMD med administrator privilegie og skriv følgende kommando i CMD dialogen:
 ```
 SCHTASKS /DELETE /TN /TN "PG og OGR jobs\Overfør data fra LOIS til PG"
 ```
-
 
 ## Sikkerhedsopsætning i PostgreSQL.
 
@@ -355,4 +355,4 @@ Et real-life script til opsætning af en database efter ovenstående principper:
 
 ## Forskelle på Windows miljø og Linux miljø 
 
-
+TBD
