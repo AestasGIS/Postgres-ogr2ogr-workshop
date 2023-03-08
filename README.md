@@ -200,6 +200,7 @@ ogr2ogr -s_srs EPSG:25832 -t_srs EPSG:4326 -f "PostgreSQL" pg:"host=localhost po
 ```
 ... vil projektions-konvertere datakilde fra EPSG:25832 til EPSG:4326 før data indlæses i PostgreSQL 
 
+
 ### MSSQL Server som datasource
 
 MSSQL Server datakilde definition:
@@ -211,7 +212,7 @@ ogr2ogr eksempel fra MSSQL Server til PostgreSQL med SQLServer intergrated secur
 En tabel kopieres fra SQL Server til Postgres og en evt. eksisterende Postgres tabel erstattes (overskrives) helt med en ny tabel
 ```
 ogr2ogr -f "PostgreSQL" -lco OVERWRITE YES -lco SCHEMA=pgschema pg:"pghost port=5432 user=pguser password=pgpassword dbname=pgdatabase" \
-"MSSQL:server=msserver;atabase=msserver;trusted_connection=yes;" "msschema.mstable"
+"MSSQL:server=msserver;database=msserver;trusted_connection=yes;" "msschema.mstable"
 ```
 
 En tabel kopieres fra SQL Server til Postgres. Den eksisterende modtagertabel tømmes helt for data og nye data kopieres til den eksistrende tabel. 
@@ -222,7 +223,6 @@ ogr2ogr -f "PostgreSQL" -append -update --config OGR_TRUNCATE YES -nln pgschema.
 ```
 I begge kommandoer skal *pghost, pgdatabase, pguser, pgpassword, pgschema, pgtable, msserver, msdatabase, msschema og mstable* erstattes af de rigtige værdier for de forskellige informationer
  
-
 
 ### Pitfalls
 
@@ -314,6 +314,34 @@ For at fjerne et eksisterende jobs: Start CMD med administrator privilegie og sk
 ```
 SCHTASKS /DELETE /TN /TN "PG og OGR jobs\Overfør data fra LOIS til PG"
 ```
+
+### Automatiseret overførsler af data fra DataFordeler.
+
+Jeg tænker, at vi alle har en "yndlings prügelknabe" i Datafordeleren. Uanset dette, kan man (hvir man er heldig - det har ikke noget dygtighed at gøre) 
+få sat et såkaldt "abonnement" op som eks. hver uge sørger for at stille et opdaterede datasæt til rådighed via ftp.
+Disse data kan automatisk indlæses i Postgres med følgende kombination af DOS script oget Python script: 
+
+ - https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/tabdir2postgres.cmd
+ - https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/download_unzip.py
+ 
+For at disse script kan fungere skal der være en QGIS installeret på systemet, der udfører scriptet.
+
+ - i "tabdir2postgres.cmd opsættes alle parametre: Div. username/passwords, div. andre parametre samt placeringen af QGIS. Læs kommentarer i scripts
+ - Python scriptet skal der ikke umiddelbart ændres på, hvis man har valgt et abonnement som er nogenlunde ækvivalent med eksemplet (GeoDanmark60_TAB)
+
+NB! Scriptet er absolut "bare bones": Ingen fejlhåndtering og Python koden er ikke alt for køn. Og der bruges ingen, lidt mere avancerede, faciliteter som "Atom feeds" o.lign. 
+Det er et download af hele datasamlingen hver uge. Men de 2 scripts demonstrerer, hvorledes man kan opsætte 
+en automatiseret download af data fra Datfordeler til en lokal Postgres database.
+
+Man kunne faktisk godt have skrevet ét samlet python script, som håndterede både download, udpakning samt indlæsning i PostgreSQL. 
+Dette ville krævet downloads af ekstra Python funktions biblioteker. Så det nuv. eksempel er udformet, således det kun bruger faciliteter/funlktioner, 
+som er til rådighed ved en standard installation af QGIS 
+
+Opsætning af Task scheduler kunne have følgende udseende:
+```
+SCHTASKS /CREATE /SC WEEKLY /D SUN /TN "PG og OGR jobs\Overfør GeoDanmark data fra Datafordeler til PG" /TR "D:\MinMappe\tabdir2postgres.cmd" /ST 11:00
+```
+
 
 ## Sikkerhedsopsætning i PostgreSQL.
 
