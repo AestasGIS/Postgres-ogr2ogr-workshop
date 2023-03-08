@@ -206,11 +206,23 @@ MSSQL Server datakilde definition:
  - SQLServer security:  "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;"
  - Integrated security: "MSSQL:server=localhost\sqlexpress;database=geodata;trusted_connection=yes;"
 
-ogr2ogr eksempel fra MSSQL Server til PostgreSQL med SQLServer security: 
+ogr2ogr eksempel fra MSSQL Server til PostgreSQL med SQLServer intergrated security - 
+
+En tabel kopieres fra SQL Server til Postgres og en evt. eksisterende Postgres tabel erstattes (overskrives) helt med en ny tabel
 ```
-ogr2ogr -dim XY -f "PostgreSQL" pg:"host=localhost port=5432 user=myuser password=mypassword dbname=geodata" "MSSQL:server=localhost\sqlexpress;database=geodata;uid=sa;pwd=password;" \
--sql= "SELECT *, CONVERT(varchar, getdate(), 23) AS ogr_date FROM [ms_schema].[ms_table] -- WHERE.... " -nln=pg_schema.pg_table
+ogr2ogr -f "PostgreSQL" -lco OVERWRITE YES -lco SCHEMA=pgschema pg:"pghost port=5432 user=pguser password=pgpassword dbname=pgdatabase" \
+"MSSQL:server=msserver;atabase=msserver;trusted_connection=yes;" "msschema.mstable"
 ```
+
+En tabel kopieres fra SQL Server til Postgres. Den eksisterende modtagertabel tømmes helt for data og nye data kopieres til den eksistrende tabel. 
+Denne kommando fejler, hvis modtagertabel ikke eksisterer.
+```
+ogr2ogr -f "PostgreSQL" -append -update --config OGR_TRUNCATE YES -nln pgschema.pgtable   pg:"host=pghost port=5432 user=pguser password=pgpassword dbname=pgdatabase" \
+"MSSQL:server=msserver;database=msdatabase;trusted_connection=yes;" "msschema.mstable"
+```
+I begge kommandoer skal *pghost, pgdatabase, pguser, pgpassword, pgschema, pgtable, msserver, msdatabase, msschema og mstable* erstattes af de rigtige værdier for de forskellige informationer
+ 
+
 
 ### Pitfalls
 
