@@ -319,7 +319,7 @@ SCHTASKS /DELETE /TN /TN "PG og OGR jobs\Overfør data fra LOIS til PG"
 
 Jeg tænker, at vi alle har en "yndlings prügelknabe" i Datafordeleren. Uanset dette, kan man (hvir man er heldig - det har ikke noget dygtighed at gøre) 
 få sat et såkaldt "abonnement" op som eks. hver uge sørger for at stille et opdaterede datasæt til rådighed via ftp.
-Disse data kan automatisk indlæses i Postgres med følgende kombination af DOS script oget Python script: 
+Disse data kan automatisk indlæses i Postgres med følgende kombination af DOS script og et Python script: 
 
  - https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/tabdir2postgres.cmd
  - https://github.com/AestasGIS/Postgres-ogr2ogr-workshop/blob/main/download_unzip.py
